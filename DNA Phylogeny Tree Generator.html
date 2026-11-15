@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DNA Phylogeny Tree Generator</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6fb;--card:#fff;--text:#1b2633;--muted:#617083;--line:#dde4ee;--accent:#3358c4;--accent2:#7b4fd6;--ok:#2e8b57;--bad:#d64545;--chip:#eef3fd;--shadow:0 4px 18px rgba(30,50,90,.08);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e131b;--card:#18202b;--text:#e7edf4;--muted:#9aa9ba;--line:#2a3544;--accent:#7ea6f2;--accent2:#b69cf5;--ok:#6fd49a;--bad:#f08a8a;--chip:#1e2a3b;--shadow:0 4px 18px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e131b;--card:#18202b;--text:#e7edf4;--muted:#9aa9ba;--line:#2a3544;--accent:#7ea6f2;--accent2:#b69cf5;--ok:#6fd49a;--bad:#f08a8a;--chip:#1e2a3b;--shadow:0 4px 18px rgba(0,0,0,.35);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.hero{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:30px 16px 54px}
+.wrap{max-width:960px;margin:0 auto}
+.hero h1{margin:0 0 6px;font-size:clamp(22px,5vw,32px)}
+.hero p{margin:0;max-width:680px;opacity:.95}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.tag{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);padding:4px 12px;border-radius:99px;font-size:13px}
+main{max-width:960px;margin:-34px auto 0;padding:0 14px 44px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.card h2 i{font-style:normal;background:var(--chip);border-radius:8px;padding:2px 8px;font-size:14px}
+.hint{color:var(--muted);margin:0 0 12px;font-size:14px}
+.sp{display:grid;grid-template-columns:34px 1fr 2fr 40px;gap:8px;align-items:start;margin-bottom:10px}
+.num{background:var(--chip);color:var(--accent);font-weight:700;border-radius:10px;height:40px;display:grid;place-items:center}
+input{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;height:40px}
+input:focus{outline:none;border-color:var(--accent)}
+input.sq{font-family:ui-monospace,Consolas,monospace;letter-spacing:1px;text-transform:uppercase}
+input.bad{border-color:var(--bad)}input.good{border-color:var(--ok)}
+.msg{font-size:12px;margin-top:3px;min-height:15px;color:var(--muted)}.msg.bad{color:var(--bad)}.msg.good{color:var(--ok)}
+button{font:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card);color:var(--text);border-radius:10px;padding:9px 16px;height:40px}
+button:hover{border-color:var(--accent)}
+button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:0;font-weight:700}
+button.danger{color:var(--bad)}button.danger:hover{border-color:var(--bad)}
+button.x{padding:0;width:40px;color:var(--bad)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.bar .sp-end{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.samples{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.samples button{height:34px;padding:0 12px;font-size:13px;background:var(--chip)}
+.err{color:var(--bad);margin:10px 0 0;min-height:1.3em;font-weight:600}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 11px;text-align:center;white-space:nowrap}
+th{background:var(--chip)}td.mn{background:var(--chip);color:var(--accent);font-weight:700}
+.pair{display:grid;grid-template-columns:minmax(120px,1.4fr) 3fr 56px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.pair:last-child{border:0}
+.track{height:10px;background:var(--chip);border-radius:9px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:9px}
+.d{font-weight:700;text-align:right}.badge{font-size:11px;background:var(--chip);color:var(--ok);padding:1px 7px;border-radius:99px;margin-left:6px}
+.step{font-family:ui-monospace,Consolas,monospace;font-size:13px;padding:3px 0}.acc{color:var(--ok)}.rej{color:var(--bad)}
+.total{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.total b{font-size:42px;line-height:1}.total span{opacity:.92}
+svg text{fill:var(--text);font-family:system-ui,sans-serif}
+.hide{display:none}
+@media (max-width:600px){.sp{grid-template-columns:30px 1fr 40px}.sp .num{grid-row:1/3}.sp .nmw{grid-column:2}.sp .sqw{grid-column:2/4}.sp .x{grid-column:3;grid-row:1}.bar .sp-end{margin-left:0;width:100%}.bar .sp-end button,.bar>button{flex:1}.pair{grid-template-columns:1fr 50px}.pair .track{grid-column:1/3;grid-row:2}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <h1>🧬 DNA Phylogeny &amp; Evolutionary Tree Generator</h1>
+  <p>This project compares the DNA of different species, measures how far apart they are, and builds an evolutionary tree that links the closest relatives first. It is useful for tracing virus variants and classifying species.</p>
+  <div class="tags"><span class="tag">Edit Distance (DP)</span><span class="tag">Weighted Graph</span><span class="tag">Kruskal’s MST</span><span class="tag">Disjoint Set Union</span></div>
+</div></header>
+
+<main>
+<section class="card">
+  <h2><i>1</i> Add species</h2>
+  <p class="hint">Enter a name and a DNA sequence for each species. Only A, C, G and T are accepted, and you need at least 2 species.</p>
+  <div class="samples"><span class="hint" style="margin:0;align-self:center">Try a sample:</span>
+    <button id="s1">Primates</button><button id="s2">Virus variants</button><button id="s3">Animals</button></div>
+  <div id="rows"></div>
+  <div class="bar">
+    <button id="add">+ Add species</button>
+    <div class="sp-end"><button class="danger" id="reset">↺ Reset</button><button class="primary" id="submit">Submit &amp; build tree →</button></div>
+  </div>
+  <p class="err" id="err" role="alert"></p>
+</section>
+
+<div id="out" class="hide">
+  <div class="total"><div><span>Total Evolutionary Distance Cost</span><br><span id="sum"></span></div><b id="tot">0</b></div>
+  <section class="card"><h2><i>2</i> Evolutionary tree (Kruskal’s MST)</h2><p class="hint">Green node is the root. Numbers on the lines are genetic distances.</p><div class="scroll" id="tree"></div></section>
+  <section class="card"><h2><i>3</i> Genetic distance (Edit Distance)</h2><p class="hint">Every pair of species, from closest to farthest. “In tree” marks the pairs chosen by Kruskal.</p><div id="pairs"></div></section>
+  <section class="card"><h2><i>4</i> Distance matrix</h2><div class="scroll" id="mat"></div></section>
+  <section class="card"><h2><i>5</i> Kruskal step by step</h2><div id="steps"></div></section>
+</div>
+</main>
+
+<script>
+const SETS={
+ 1:[["Human","AGCTTAGCTA"],["Chimpanzee","AGCTTAGTTA"],["Gorilla","AACTTAGCTA"],["Orangutan","TGCTTAGCTG"]],
+ 2:[["Wuhan-Original","ATGGCTAGCTAGGATCCGATTACAGGCT"],["Alpha-Variant","ATGGCTAGCTAGGATCCGATTTCAGGCT"],["Beta-Variant","ATGGCTAGCTAAGATCCGATTTCAGGAT"],["Delta-Variant","ATGGCAAGCTAAGATCCGGTTTCAGGAT"],["Omicron-Variant","ATGGCAAGCTAAGTTCCGGTTTCAGGAT"],["Bat-Ancestor","ATGGCTAGGTAGGATCCGATTACAGGGT"]],
+ 3:[["Lion","ACGTACGTTAGCCGATAGCT"],["Tiger","ACGTACGTTAGCCGATTGCT"],["Leopard","ACGTACCTTAGCCGATTGCA"],["Wolf","TCGAACGTTGGCCTATAGCA"],["Dog","TCGAACGTTGGCCTATAGTA"],["Fox","TCGAACTTTGGACTATAGTA"]]
+};
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function renumber(){[...$("rows").children].forEach((r,i)=>r.querySelector(".num").textContent=i+1)}
+function check(inp,msg){
+  const v=inp.value.trim().toUpperCase();
+  if(!v){inp.className="sq";msg.className="msg";msg.textContent="";return}
+  if(/^[ACGT]+$/.test(v)){inp.className="sq good";msg.className="msg good";msg.textContent="✓ Valid DNA ("+v.length+" bases)"}
+  else{const b=[...new Set(v.replace(/[ACGT]/g,""))].join(" ");inp.className="sq bad";msg.className="msg bad";msg.textContent="Invalid character: "+b+" (use only A, C, G, T)"}
+}
+function addRow(n="",s=""){
+  const r=document.createElement("div");r.className="sp";
+  r.innerHTML='<div class="num"></div><div class="nmw"><input class="nm" placeholder="Species name"></div><div class="sqw"><input class="sq" placeholder="e.g. AGCTTAGCTA" autocomplete="off" spellcheck="false"><div class="msg"></div></div><button class="x" title="Remove">✕</button>';
+  const nm=r.querySelector(".nm"),sq=r.querySelector(".sq"),msg=r.querySelector(".msg");
+  nm.value=n;sq.value=s;check(sq,msg);
+  sq.oninput=()=>check(sq,msg);
+  r.querySelector(".x").onclick=()=>{if($("rows").children.length>2){r.remove();renumber()}else $("err").textContent="At least 2 species are required."};
+  $("rows").appendChild(r);renumber();
+}
+function setRows(list){$("rows").innerHTML="";list.forEach(x=>addRow(x[0],x[1]));$("err").textContent=""}
+function reset(){setRows([["",""],["",""]]);$("out").classList.add("hide");window.scrollTo({top:0,behavior:"smooth"})}
+
+function editDistance(a,b){
+  const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]);
+  return dp[m][n];
+}
+class DSU{constructor(n){this.p=[...Array(n).keys()];this.r=new Array(n).fill(0)}
+ find(x){return this.p[x]===x?x:(this.p[x]=this.find(this.p[x]))}
+ union(a,b){a=this.find(a);b=this.find(b);if(a===b)return false;
+  if(this.r[a]<this.r[b])this.p[a]=b;else if(this.r[a]>this.r[b])this.p[b]=a;else{this.p[b]=a;this.r[a]++}return true}}
+
+function submit(){
+  const sp=[],seen=new Set();$("err").textContent="";
+  for(const r of $("rows").children){
+    const name=r.querySelector(".nm").value.trim(),seq=r.querySelector(".sq").value.trim().toUpperCase();
+    if(!name&&!seq)continue;
+    if(!name)return fail("Please enter a name for every species.");
+    if(seen.has(name.toLowerCase()))return fail("Duplicate species name: "+name);
+    if(!/^[ACGT]+$/.test(seq))return fail("Invalid DNA for “"+name+"”. Use only A, C, G, T.");
+    seen.add(name.toLowerCase());sp.push({name,seq});
+  }
+  if(sp.length<2)return fail("Enter at least 2 species before submitting.");
+  const n=sp.length,M=Array.from({length:n},()=>new Array(n).fill(0)),E=[];
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const d=editDistance(sp[i].seq,sp[j].seq);M[i][j]=M[j][i]=d;E.push({u:i,v:j,w:d})}
+  E.sort((a,b)=>a.w-b.w||a.u-b.u||a.v-b.v);
+  const dsu=new DSU(n),mst=[],log=[];let cost=0;
+  for(const e of E){
+    const lab=sp[e.u].name+" – "+sp[e.v].name+" (d="+e.w+")";
+    if(dsu.union(e.u,e.v)){mst.push(e);cost+=e.w;log.push([true,lab]);if(mst.length===n-1)break}
+    else log.push([false,lab]);
+  }
+  show(sp,M,E,mst,log,cost);
+}
+function fail(m){$("err").textContent=m}
+
+function show(sp,M,E,mst,log,cost){
+  $("out").classList.remove("hide");
+  $("tot").textContent=cost;
+  $("sum").textContent=sp.length+" species connected with "+mst.length+" edges";
+  const inMst=new Set(mst.map(e=>e.u+","+e.v)),mx=Math.max(...E.map(e=>e.w),1);
+  $("pairs").innerHTML=E.map(e=>"<div class='pair'><div>"+esc(sp[e.u].name)+" ↔ "+esc(sp[e.v].name)+(inMst.has(e.u+","+e.v)?"<span class='badge'>in tree</span>":"")+"</div><div class='track'><div class='fill' style='width:"+Math.max(4,e.w/mx*100)+"%'></div></div><div class='d'>"+e.w+"</div></div>").join("");
+  let h="<table><tr><th></th>"+sp.map(s=>"<th>"+esc(s.name)+"</th>").join("")+"</tr>";
+  sp.forEach((a,i)=>{h+="<tr><th>"+esc(a.name)+"</th>"+sp.map((b,j)=>{
+    const k=i<j?i+","+j:j+","+i;return"<td"+(i!==j&&inMst.has(k)?' class="mn"':"")+">"+M[i][j]+"</td>"}).join("")+"</tr>"});
+  $("mat").innerHTML=h+"</table><p class='hint' style='margin-top:8px'>Highlighted cells are the edges chosen for the tree.</p>";
+  $("steps").innerHTML=log.map((l,i)=>"<div class='step "+(l[0]?"acc":"rej")+"'>Step "+(i+1)+": "+(l[0]?"ACCEPT ":"REJECT ")+esc(l[1])+(l[0]?"":"  [would form a cycle]")+"</div>").join("");
+  drawTree(sp,mst);
+  $("out").scrollIntoView({behavior:"smooth"});
+}
+
+function drawTree(sp,mst){
+  const n=sp.length,adj=Array.from({length:n},()=>[]);
+  mst.forEach(e=>{adj[e.u].push(e.v);adj[e.v].push(e.u)});
+  const pos=[],par=[];let leaf=0,maxD=0;
+  (function dfs(u,p,d){
+    par[u]=p;maxD=Math.max(maxD,d);
+    const kids=adj[u].filter(x=>x!==p);
+    if(!kids.length){pos[u]={x:leaf++,d};return}
+    kids.forEach(k=>dfs(k,u,d+1));
+    pos[u]={x:kids.reduce((s,k)=>s+pos[k].x,0)/kids.length,d};
+  })(0,-1,0);
+  const gx=Math.max(110,Math.min(170,sp.reduce((m,s)=>Math.max(m,s.name.length),0)*9+30)),gy=84;
+  const W=Math.max(300,leaf*gx+20),H=maxD*gy+90;
+  const px=u=>10+gx/2+pos[u].x*gx,py=u=>34+pos[u].d*gy;
+  let s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Evolutionary tree">';
+  mst.forEach(e=>{
+    const p=par[e.u]===e.v?e.v:e.u,c=p===e.u?e.v:e.u,mx=(px(p)+px(c))/2,my=(py(p)+py(c))/2;
+    s+='<line x1="'+px(p)+'" y1="'+py(p)+'" x2="'+px(c)+'" y2="'+py(c)+'" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>';
+    s+='<rect x="'+(mx-13)+'" y="'+(my-11)+'" width="26" height="22" rx="7" fill="var(--card)" stroke="var(--line)"/><text x="'+mx+'" y="'+(my+5)+'" font-size="12" text-anchor="middle" font-weight="700">'+e.w+'</text>';
+  });
+  sp.forEach((x,u)=>{
+    s+='<circle cx="'+px(u)+'" cy="'+py(u)+'" r="10" fill="'+(u===0?"var(--ok)":"var(--accent)")+'" stroke="var(--card)" stroke-width="3"/>';
+    s+='<text x="'+px(u)+'" y="'+(py(u)+30)+'" font-size="13" text-anchor="middle" font-weight="600">'+esc(x.name)+'</text>';
+  });
+  $("tree").innerHTML=s+"</svg>";
+}
+$("add").onclick=()=>addRow();$("submit").onclick=submit;$("reset").onclick=reset;
+$("s1").onclick=()=>setRows(SETS[1]);$("s2").onclick=()=>setRows(SETS[2]);$("s3").onclick=()=>setRows(SETS[3]);
+setRows(SETS[1]);
+</script>
+</body>
+</html>
